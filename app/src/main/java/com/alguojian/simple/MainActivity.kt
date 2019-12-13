@@ -1,13 +1,18 @@
 package com.alguojian.simple
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.lcw.library.imagepicker.ImagePicker
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.alguojian.videoffmpeg.VideoFfmpeg
+import com.alguojian.videoffmpeg.select.SelectVideoActivity
 import io.microshow.rxffmpeg.RxFFmpegInvoke
 import io.microshow.rxffmpeg.RxFFmpegSubscriber
 import kotlinx.android.synthetic.main.activity_main.*
@@ -27,28 +32,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun selectVideo(view: View) {
-        ImagePicker.getInstance()
-            .setTitle("标题") //设置标题
-            .showCamera(false) //设置是否显示拍照按钮
-            .showImage(false) //设置是否展示图片
-            .showVideo(true) //设置是否展示视频
-            .start(this@MainActivity, REQUEST_SELECT_IMAGES_CODE)
+        if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1
+            )
+        } else {
+            VideoFfmpeg.openSelectVideo(this)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_SELECT_IMAGES_CODE && resultCode == Activity.RESULT_OK && data != null) {
-            val imagePaths: List<String> =
-                data.getStringArrayListExtra(ImagePicker.EXTRA_SELECT_IMAGES)
-            if (imagePaths.isNullOrEmpty()) {
-                return
-            }
 
-            val commandCompress = getCommandCompress(imagePaths[0])
-            if (commandCompress.isNullOrEmpty())
-                return
-
-            startComPress(commandCompress)
+//            val commandCompress = getCommandCompress(imagePaths[0])
+//            if (commandCompress.isNullOrEmpty())
+//                return
+//
+//            startComPress(commandCompress)
 
         }
     }

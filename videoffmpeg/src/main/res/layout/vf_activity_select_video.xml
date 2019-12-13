@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".select.SelectVideoActivity">
+
+    <include layout="@layout/vf_common_action_bar" />
+
+    <GridView
+        android:id="@+id/gridView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/background_dark"
+        android:horizontalSpacing="4dp"
+        android:numColumns="3"
+        android:scrollbars="vertical"
+        android:verticalSpacing="4dp" />
+
+</LinearLayout>

@@ -1,0 +1,111 @@
+package com.alguojian.videoffmpeg
+
+import android.content.Context
+import android.media.MediaMetadataRetriever
+
+/**
+ * context.externalCacheDir!!.absolutePath + File.separator + System.currentTimeMillis() + ".mp4"
+ */
+object VideoUtils {
+
+    /**
+     * 获得视频裁剪命令
+     * [context] 上下文
+     * [originPath] 视频路径
+     * [outPath] 视频输出路径
+     * [startMs] 开始裁剪的时间
+     * [endMs] 结束裁剪的时间
+     *
+     * 裁剪视频ffmpeg指令说明：
+     * ffmpeg -ss START -t DURATION -i INPUT -codec copy -avoid_negative_ts 1 OUTPUT
+     * -ss 开始时间，如： 00:00:20，表示从20秒开始；
+     * -t 时长，如： 00:00:15，表示截取15秒长的视频；
+     * -i 输入，后面是空格，紧跟着就是输入视频文件；
+     * -codec copy -avoid_negative_ts 1 表示所要使用的视频和音频的编码格式，这里指定为copy表示原样拷贝；
+     * originPath，输入视频文件；
+     * outPath，输出视频文件
+     */
+    fun getCropCommand(
+        context: Context, originPath: String, outPath: String,
+        startMs: Long, endMs: Long
+    ): Array<String>? {
+
+        val start: String = VfUtils.convertSecondsToTime(startMs / 1000)
+        val duration: String = VfUtils.convertSecondsToTime((endMs - startMs) / 1000)
+
+        val list = mutableListOf<String>()
+        list.add("ffmpeg")
+        list.add("-ss")
+        list.add(start)
+        list.add("-t")
+        list.add(duration)
+        list.add("-accurate_seek")
+        list.add("-i")
+        list.add(originPath)
+        list.add("-codec copy -avoid_negative_ts 1")
+        list.add(outPath)
+        return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
+    }
+
+
+    /**
+     * 获得压缩命令
+     * [context] 上下文
+     * [originPath] 视频路径
+     * [outPath] 视频输出路径
+     */
+    fun getCompressCommand(context: Context, originPath: String, outPath: String): Array<String>? {
+        //https://blog.csdn.net/qq_31332467/article/details/79166945
+        //4K视频可能会闪退，所以需要添加尺寸压缩
+        val mMetadataRetriever = MediaMetadataRetriever()
+        mMetadataRetriever.setDataSource(originPath)
+        val videoRotation =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+        val videoHeight =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+        val videoWidth =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+        val bitrate =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
+        mMetadataRetriever.release()
+        //码率低于400不进行压缩
+        if (bitrate.toInt() < 400 * 1000)
+            return null
+        val newBitrate = if (bitrate.toInt() > 2000 * 1000) {
+            2000
+        } else {
+            (bitrate.toInt() * 0.8f / 1000f).toInt()
+        }
+        val width: Int
+        val height: Int
+        if (Integer.parseInt(videoRotation) == 90 || Integer.parseInt(videoRotation) == 270) {
+            //角度不对需要宽高调换
+            width = videoHeight.toInt()
+            height = videoWidth.toInt()
+        } else {
+            width = videoWidth.toInt()
+            height = videoHeight.toInt()
+        }
+        //需要根据视频大小和视频时长计算得到需要压缩的码率，不然会导致高清视频压缩后变模糊，非高清视频压缩后文件变大
+        //https://blog.csdn.net/zhezhebie/article/details/79263492
+        val list = mutableListOf<String>()
+        list.add("ffmpeg")
+        list.add("-y")
+        list.add("-i")
+        list.add(originPath)
+        list.add("-b")
+        list.add("${newBitrate}k")
+        list.add("-r")
+        list.add("30")
+        list.add("-vcodec")
+        list.add("libx264")
+        if (kotlin.math.min(width, height) > 1080) {//大于1080p
+            list.add("-vf")
+            list.add("scale=${if (width > height) "1080:-1" else "-1:1080"}")
+        }
+        list.add("-preset")
+        list.add("superfast")
+        list.add(outPath)
+        return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
+    }
+}
