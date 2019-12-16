@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.alguojian.videoffmpeg.R
 import kotlinx.android.synthetic.main.vf_activity_video_trimmer.*
 
-class VideoTrimmerActivity : AppCompatActivity(), VfVideoTrimListener {
+class VideoTrimmerActivity : AppCompatActivity() {
 
     private lateinit var videoPath: String
 
@@ -25,7 +25,6 @@ class VideoTrimmerActivity : AppCompatActivity(), VfVideoTrimListener {
         }
         setContentView(R.layout.vf_activity_video_trimmer)
         videoPath = intent.getStringExtra("videoPath")
-        trimmer_view.setOnTrimVideoListener(this)
         trimmer_view.initVideoByURI(Uri.parse(videoPath))
 
     }
@@ -53,15 +52,5 @@ class VideoTrimmerActivity : AppCompatActivity(), VfVideoTrimListener {
     override fun onDestroy() {
         super.onDestroy()
         trimmer_view.onDestroy()
-    }
-
-    override fun onFinishTrim(url: String?) {
-    }
-
-    override fun onStartTrim() {
-    }
-
-    override fun onCancel() {
-
     }
 }

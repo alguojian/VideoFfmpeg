@@ -25,10 +25,11 @@ import com.alguojian.videoffmpeg.LogUtils;
 import com.alguojian.videoffmpeg.R;
 import com.alguojian.videoffmpeg.VfApp;
 import com.alguojian.videoffmpeg.trim.IVideoTrimmerView;
-import com.alguojian.videoffmpeg.trim.VfVideoTrimListener;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerAdapter;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerUtil;
 import com.alguojian.videoffmpeg.trim.VideoTrimmerActivity;
+
+import java.io.File;
 
 import io.reactivex.disposables.Disposable;
 
@@ -50,7 +51,6 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     private float mAverageMsPx;//每毫秒所占的px
     private float averagePxMs;//每px所占用的ms毫秒
     private Uri mSourceUri;
-    private VfVideoTrimListener mOnTrimVideoListener;
     private int mDuration = 0;
     private VfVideoTrimmerAdapter mVideoThumbAdapter;
     private boolean isFromRestore = false;
@@ -194,10 +194,6 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
         }
     }
 
-    public void setOnTrimVideoListener(VfVideoTrimListener onTrimVideoListener) {
-        mOnTrimVideoListener = onTrimVideoListener;
-    }
-
     private void setUpListeners() {
         findViewById(R.id.cancelBtn).setOnClickListener(view -> onCancelClicked());
 
@@ -219,10 +215,9 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
             mVideoView.pause();
             VfVideoTrimmerUtil.trim(mContext,
                     mSourceUri.getPath(),
-                    VfApp.getMContext().getExternalCacheDir().getAbsolutePath(),
+                    VfApp.getMContext().getExternalCacheDir().getAbsolutePath() + File.separator + System.currentTimeMillis() + ".mp4",
                     mLeftProgressPos,
-                    mRightProgressPos,
-                    mOnTrimVideoListener);
+                    mRightProgressPos);
         }
     }
 

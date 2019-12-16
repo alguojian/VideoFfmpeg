@@ -1,6 +1,5 @@
 package com.alguojian.videoffmpeg
 
-import android.content.Context
 import android.media.MediaMetadataRetriever
 
 /**
@@ -25,13 +24,21 @@ object VideoUtils {
      * originPath，输入视频文件；
      * outPath，输出视频文件
      */
+    @JvmStatic
     fun getCropCommand(
-        context: Context, originPath: String, outPath: String,
+        originPath: String, outPath: String,
         startMs: Long, endMs: Long
     ): Array<String>? {
 
+
         val start: String = VfUtils.convertSecondsToTime(startMs / 1000)
         val duration: String = VfUtils.convertSecondsToTime((endMs - startMs) / 1000)
+
+//        val cmd =
+//            "ffmpeg -y -ss $start -t $duration -accurate_seek -i $originPath -codec copy -avoid_negative_ts 1 $outPath"
+//        val command = cmd.split(" ").toTypedArray()
+
+        LogUtils.log("----------开始裁剪时间----------$start-----------裁剪时长为-----$duration")
 
         val list = mutableListOf<String>()
         list.add("ffmpeg")
@@ -42,7 +49,36 @@ object VideoUtils {
         list.add("-accurate_seek")
         list.add("-i")
         list.add(originPath)
-        list.add("-codec copy -avoid_negative_ts 1")
+        list.add("-codec")
+        list.add("copy")
+        list.add("-avoid_negative_ts")
+        list.add("1")
+        list.add(outPath)
+//        return command
+        return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
+    }
+
+
+    /**
+     * 获得视频第一帧作为视频封面
+     */
+    @JvmStatic
+    fun getInterceptImage(
+        originPath: String, outPath: String
+    ): Array<String>? {
+        val list = mutableListOf<String>()
+        list.add("ffmpeg")
+        list.add("-y")
+        list.add("-i")
+        list.add(originPath)
+        list.add("-f")
+        list.add("image2")
+        list.add("-ss")
+        list.add("00:00:00")
+        list.add("-vframes")
+        list.add("1")
+        list.add("-preset")
+        list.add("superfast")
         list.add(outPath)
         return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
     }
@@ -50,11 +86,11 @@ object VideoUtils {
 
     /**
      * 获得压缩命令
-     * [context] 上下文
      * [originPath] 视频路径
      * [outPath] 视频输出路径
      */
-    fun getCompressCommand(context: Context, originPath: String, outPath: String): Array<String>? {
+    @JvmStatic
+    fun getCompressCommand(originPath: String, outPath: String): Array<String>? {
         //https://blog.csdn.net/qq_31332467/article/details/79166945
         //4K视频可能会闪退，所以需要添加尺寸压缩
         val mMetadataRetriever = MediaMetadataRetriever()
