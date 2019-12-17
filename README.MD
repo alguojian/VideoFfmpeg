@@ -1,6 +1,25 @@
 ### 视频裁剪以及视频压缩 ，使用ffmpeg，速度还是较快的，清晰度高，压缩后比较小
 
-- 使用如下
+#### 使用如下
+
+
+- Step 1. Add the JitPack repository to your build file
+
+```
+        allprojects {
+                repositories {
+                        ...
+                        maven { url 'https://jitpack.io' }
+                }
+        }
+```
+
+- Step 2. Add the dependency
+```
+        dependencies {
+                        implementation 'com.github.alguojian:VideoFfmpeg:v1.0.1'
+        }
+```
 
 ##### 1、初始化 ，需要拿到上下文存储视频或者截图到app私有缓存路径中
 
