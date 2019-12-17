@@ -3,18 +3,14 @@ package com.alguojian.videoffmpeg.select
 import android.content.Context
 import android.content.Intent
 import android.database.Cursor
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
+import android.support.v7.app.AppCompatActivity
 import com.alguojian.videoffmpeg.R
 import com.alguojian.videoffmpeg.VfMessageTotification
 import com.alguojian.videoffmpeg.VfSimpleCallback
 import com.alguojian.videoffmpeg.VideoUtils
 import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.vf_activity_select_video.*
-import kotlinx.android.synthetic.main.vf_activity_video_trimmer.*
 import kotlinx.android.synthetic.main.vf_common_action_bar.*
 
 class SelectVideoActivity : AppCompatActivity() {
