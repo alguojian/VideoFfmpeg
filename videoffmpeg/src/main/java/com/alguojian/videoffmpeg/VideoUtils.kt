@@ -7,6 +7,25 @@ import android.media.MediaMetadataRetriever
  */
 object VideoUtils {
 
+    //点击完成开始视频操作时，关闭截取页面，以及视频选择页面
+    const val start_video_operating_finish_activity="START_VIDEO_OPERATING_FINISH_ACTIVITY"
+
+    val videoCropOutPath: String
+        get() {
+            return VfApp.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
+        }
+
+    val videoInterceptImageOutPath: String
+        get() {
+            return VfApp.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".jpg"
+        }
+
+    val videoCompressOutPath: String
+        get() {
+            return VfApp.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
+        }
+
+
     /**
      * 获得视频裁剪命令
      * [context] 上下文
@@ -29,16 +48,10 @@ object VideoUtils {
         originPath: String, outPath: String,
         startMs: Long, endMs: Long
     ): Array<String>? {
-
-
         val start: String = VfUtils.convertSecondsToTime(startMs / 1000)
         val duration: String = VfUtils.convertSecondsToTime((endMs - startMs) / 1000)
 
-//        val cmd =
-//            "ffmpeg -y -ss $start -t $duration -accurate_seek -i $originPath -codec copy -avoid_negative_ts 1 $outPath"
-//        val command = cmd.split(" ").toTypedArray()
-
-        LogUtils.log("----------开始裁剪时间----------$start-----------裁剪时长为-----$duration")
+        LogUtils.log("--------------开始裁剪时间----------$start-----------裁剪时长为-----$duration")
 
         val list = mutableListOf<String>()
         list.add("ffmpeg")
@@ -54,7 +67,6 @@ object VideoUtils {
         list.add("-avoid_negative_ts")
         list.add("1")
         list.add(outPath)
-//        return command
         return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
     }
 
@@ -65,7 +77,7 @@ object VideoUtils {
     @JvmStatic
     fun getInterceptImage(
         originPath: String, outPath: String
-    ): Array<String>? {
+    ): Array<String> {
         val list = mutableListOf<String>()
         list.add("ffmpeg")
         list.add("-y")
@@ -74,13 +86,13 @@ object VideoUtils {
         list.add("-f")
         list.add("image2")
         list.add("-ss")
-        list.add("00:00:00")
+        list.add("00:00:01")
         list.add("-vframes")
         list.add("1")
         list.add("-preset")
         list.add("superfast")
         list.add(outPath)
-        return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
+        return list.toTypedArray()
     }
 
 
@@ -104,8 +116,8 @@ object VideoUtils {
         val bitrate =
             mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)
         mMetadataRetriever.release()
-        //码率低于400不进行压缩
-        if (bitrate.toInt() < 400 * 1000)
+        //码率低于600不进行压缩
+        if (bitrate.toInt() < 600 * 1000)
             return null
         val newBitrate = if (bitrate.toInt() > 2000 * 1000) {
             2000
@@ -115,10 +127,10 @@ object VideoUtils {
         val width: Int
         val height: Int
         if (Integer.parseInt(videoRotation) == 90 || Integer.parseInt(videoRotation) == 270) {
-            //角度不对需要宽高调换
             width = videoHeight.toInt()
             height = videoWidth.toInt()
         } else {
+            //角度不对需要宽高调换
             width = videoWidth.toInt()
             height = videoHeight.toInt()
         }
@@ -144,4 +156,6 @@ object VideoUtils {
         list.add(outPath)
         return list.toTypedArray()//采用list转换，防止文件名带空格造成分割错误
     }
+
+
 }

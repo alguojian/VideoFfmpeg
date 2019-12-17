@@ -14,27 +14,32 @@ import io.microshow.rxffmpeg.RxFFmpegSubscriber
  */
 object VideoFfmpeg {
 
+    @JvmStatic
     private lateinit var mContext: Context
 
     /**
      * 视频相关进度
      */
-    private var vfVideoListener: VfVideoListener? = null
+    @JvmStatic
+    var vfVideoListener: VfVideoListener? = null
 
     /**
      * 是否正在进行视频的操作，包括裁剪，压缩上传等一系列，防止当前没操作完，禁止操作下一个视频
      */
+    @JvmStatic
     var isOperating = false
 
     /**
      * 是否显示日志
      */
+    @JvmStatic
     var showLog: Boolean = false
 
     /**
      * 必须初始化，需要拿到上下文来得到视频存放目录，是否显示log日志，包括视频裁剪，以及压缩等
      */
     @JvmStatic
+    @JvmOverloads
     fun init(context: Context, openLog: Boolean = false) {
         this@VideoFfmpeg.mContext = context
         showLog = openLog
@@ -52,27 +57,62 @@ object VideoFfmpeg {
      * 压缩视频
      */
     @JvmStatic
-    fun startCompress(inPath: String, outPath: String) {
+    @JvmOverloads
+    fun startCompress(
+        inPath: String,
+        outPath: String = VideoUtils.videoCompressOutPath,
+        thumbImage: String? = null,
+        aloneTransfer: Boolean = true
+    ) {
+        if (aloneTransfer) {
+            isOperating = true
+        }
         vfVideoListener?.onStart()
+        val compressCommand = VideoUtils.getCompressCommand(inPath, outPath)
+        if (compressCommand.isNullOrEmpty()) {
+            LogUtils.log("--------------压缩完成了--------------低于400码率不需要压缩------------------------$outPath")
+            vfVideoListener?.onFinish(inPath, thumbImage)
+            if (aloneTransfer) {
+                vfVideoListener?.onProgress(100)
+            } else {
+                vfVideoListener?.onProgress(85)
+            }
+            changeStatus(aloneTransfer)
+            return
+        }
         RxFFmpegInvoke.getInstance()
-            .runCommandRxJava(VideoUtils.getCompressCommand(inPath, outPath))
+            .runCommandRxJava(compressCommand)
             .subscribe(object : RxFFmpegSubscriber() {
                 override fun onFinish() {
-                    LogUtils.log("--------------压缩完成了------------$outPath")
-                    vfVideoListener?.onFinish(outPath)
+                    LogUtils.log("--------------压缩完成了-----------------------------$outPath")
+                    vfVideoListener?.onFinish(outPath, thumbImage)
+                    if (aloneTransfer) {
+                        vfVideoListener?.onProgress(100)
+                    } else {
+                        vfVideoListener?.onProgress(85)
+                    }
+                    changeStatus(aloneTransfer)
                 }
 
                 override fun onCancel() {
                     LogUtils.log("--------------压缩取消了")
+                    changeStatus(aloneTransfer)
+                    vfVideoListener?.onError()
                 }
 
                 override fun onProgress(progress: Int, progressTime: Long) {
-                    LogUtils.log("--------------压缩进度是---$progress")
-                    vfVideoListener?.onPrgress(progress, progressTime)
+                    LogUtils.log("--------------压缩进度是---$progress-------压缩时间-------$progressTime")
+                    if (aloneTransfer) {
+                        vfVideoListener?.onProgress(progress)
+                    } else {
+                        vfVideoListener?.onProgress(25 + progress * 60 / 100)
+                    }
                 }
 
                 override fun onError(message: String?) {
                     LogUtils.log("--------------压缩失败了---$message")
+                    changeStatus(aloneTransfer)
+                    vfVideoListener?.onError()
                 }
             })
     }
@@ -82,27 +122,50 @@ object VideoFfmpeg {
      * 截取第一帧
      */
     @JvmStatic
-    fun startInterceptCover(inPath: String, outPath: String) {
+    @JvmOverloads
+    fun startInterceptCover(
+        inPath: String,
+        outPath: String = VideoUtils.videoInterceptImageOutPath,
+        aloneTransfer: Boolean = true
+    ) {
+        if (aloneTransfer) {
+            isOperating = true
+        }
         vfVideoListener?.onStart()
         RxFFmpegInvoke.getInstance()
             .runCommandRxJava(VideoUtils.getInterceptImage(inPath, outPath))
             .subscribe(object : RxFFmpegSubscriber() {
                 override fun onFinish() {
-                    LogUtils.log("--------------截取完成了------------$outPath")
-                    vfVideoListener?.onFinish(outPath)
+                    LogUtils.log("--------------截取完成了----------------------------$outPath")
+                    if (aloneTransfer) {
+                        vfVideoListener?.onFinish(null, outPath)
+                    } else {
+                        vfVideoListener?.onProgress(25)
+                        //获取第一帧完成，开始压缩
+                        startCompress(inPath, VideoUtils.videoCompressOutPath, outPath, false)
+                    }
+                    changeStatus(aloneTransfer)
                 }
 
                 override fun onCancel() {
                     LogUtils.log("--------------截取取消了")
+                    changeStatus(aloneTransfer)
+                    vfVideoListener?.onError()
                 }
 
                 override fun onProgress(progress: Int, progressTime: Long) {
-                    LogUtils.log("--------------截取进度是---$progress")
-                    vfVideoListener?.onPrgress(progress, progressTime)
+                    LogUtils.log("--------------截取进度是---$progress-------截取时间-------$progressTime")
+                    if (aloneTransfer) {
+                        vfVideoListener?.onProgress(progress)
+                    } else {
+                        vfVideoListener?.onProgress(20 + progress * 5 / 100)
+                    }
                 }
 
                 override fun onError(message: String?) {
                     LogUtils.log("--------------截取失败了---$message")
+                    changeStatus(aloneTransfer)
+                    vfVideoListener?.onError()
                 }
             })
     }
@@ -110,34 +173,60 @@ object VideoFfmpeg {
 
     /**
      * 裁剪视频
+     *
+     * [inPath] 视频路径
+     * [outPath] 视频输出路径，默认缓存目录
+     * [startMs] 开始时间
+     * [endMs] 结束时间
+     * [aloneTransfer] 是否只是单独调用改方法，默认true
      */
     @JvmStatic
+    @JvmOverloads
     fun startCrop(
         inPath: String,
-        outPath: String,
+        outPath: String = VideoUtils.videoCropOutPath,
         startMs: Long,
-        endMs: Long
+        endMs: Long,
+        aloneTransfer: Boolean = true
     ) {
+        if (aloneTransfer) {
+            isOperating = true
+        }
         vfVideoListener?.onStart()
         RxFFmpegInvoke.getInstance()
             .runCommandRxJava(VideoUtils.getCropCommand(inPath, outPath, startMs, endMs))
             .subscribe(object : RxFFmpegSubscriber() {
                 override fun onFinish() {
-                    LogUtils.log("--------------裁剪完成了------------$outPath")
-                    vfVideoListener?.onFinish(outPath)
+                    LogUtils.log("--------------裁剪完成了------------------------------------$outPath")
+                    if (aloneTransfer) {
+                        vfVideoListener?.onFinish(outPath, null)
+                    } else {
+                        //裁剪完成，开始获取第一帧
+                        vfVideoListener?.onProgress(20)
+                        startInterceptCover(outPath, VideoUtils.videoInterceptImageOutPath, false)
+                    }
+                    changeStatus(aloneTransfer)
                 }
 
                 override fun onCancel() {
                     LogUtils.log("--------------裁剪取消了")
+                    vfVideoListener?.onError()
+                    changeStatus(aloneTransfer)
                 }
 
                 override fun onProgress(progress: Int, progressTime: Long) {
-                    LogUtils.log("--------------裁剪进度是---$progress")
-                    vfVideoListener?.onPrgress(progress, progressTime)
+                    LogUtils.log("--------------裁剪进度是---$progress-------裁剪时间-------$progressTime")
+                    if (aloneTransfer) {
+                        vfVideoListener?.onProgress(progress)
+                    } else {
+                        vfVideoListener?.onProgress(progress * 20 / 100)
+                    }
                 }
 
                 override fun onError(message: String?) {
+                    vfVideoListener?.onError()
                     LogUtils.log("--------------裁剪失败了---$message")
+                    changeStatus(aloneTransfer)
                 }
             })
     }
@@ -146,6 +235,7 @@ object VideoFfmpeg {
     /**
      * 打开视频选择页面，进行裁剪压缩等一系列操作
      */
+    @JvmStatic
     fun openSelectVideo(context: Context) {
         SelectVideoActivity.starter(context)
     }
@@ -154,7 +244,20 @@ object VideoFfmpeg {
     /**
      * 结束裁剪或者结束压缩
      */
-    fun onDestory() {
+    @JvmStatic
+    fun onDestroy() {
+        changeStatus()
         RxFFmpegInvoke.getInstance().exit()
+    }
+
+    /**
+     * 修改视频操作状态,默认改为未操作状态
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun changeStatus(aloneTransfer: Boolean = true) {
+        if (aloneTransfer) {
+            isOperating = false
+        }
     }
 }

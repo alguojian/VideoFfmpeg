@@ -16,20 +16,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.alguojian.videoffmpeg.LogUtils;
 import com.alguojian.videoffmpeg.R;
-import com.alguojian.videoffmpeg.VfApp;
+import com.alguojian.videoffmpeg.VfMessageTotification;
+import com.alguojian.videoffmpeg.VideoFfmpeg;
+import com.alguojian.videoffmpeg.VideoUtils;
 import com.alguojian.videoffmpeg.trim.IVideoTrimmerView;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerAdapter;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerUtil;
 import com.alguojian.videoffmpeg.trim.VideoTrimmerActivity;
-
-import java.io.File;
 
 import io.reactivex.disposables.Disposable;
 
@@ -66,6 +65,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     private ValueAnimator mRedProgressAnimator;
     private Handler mAnimationHandler = new Handler();
     private Disposable disposable;
+
 
     public VideoTrimmerView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -208,17 +208,17 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     }
 
     private void onSaveClicked() {
+        VideoFfmpeg.setOperating(true);
         if (mRightProgressPos - mLeftProgressPos < VfVideoTrimmerUtil.MIN_SHOOT_DURATION) {
-            // TODO: 2019-12-13  视频长不足3秒,可以直接压缩
-            Toast.makeText(mContext, "视频长不足3秒,无法上传", Toast.LENGTH_SHORT).show();
+            VideoFfmpeg.getVfVideoListener().onProgress(20);
+            String outpath = VideoUtils.INSTANCE.getVideoInterceptImageOutPath();
+            VideoFfmpeg.startInterceptCover(mSourceUri.getPath(), outpath, false);
         } else {
             mVideoView.pause();
-            VfVideoTrimmerUtil.trim(mContext,
-                    mSourceUri.getPath(),
-                    VfApp.getMContext().getExternalCacheDir().getAbsolutePath() + File.separator + System.currentTimeMillis() + ".mp4",
-                    mLeftProgressPos,
-                    mRightProgressPos);
+            String outpath = VideoUtils.INSTANCE.getVideoCropOutPath();
+            VideoFfmpeg.startCrop(mSourceUri.getPath(), outpath, mLeftProgressPos, mRightProgressPos, false);
         }
+        VfMessageTotification.INSTANCE().send(VideoUtils.start_video_operating_finish_activity);
     }
 
     private void seekTo(long msec) {
@@ -268,7 +268,6 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
                 default:
                     break;
             }
-
             mRangeSeekBarView.setStartEndTime(mLeftProgressPos, mRightProgressPos);
         }
     };

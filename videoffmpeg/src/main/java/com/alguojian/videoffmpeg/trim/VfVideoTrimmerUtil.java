@@ -6,16 +6,8 @@ import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 
-import com.alguojian.videoffmpeg.LogUtils;
-import com.alguojian.videoffmpeg.VfApp;
 import com.alguojian.videoffmpeg.VfUtils;
-import com.alguojian.videoffmpeg.VideoFfmpeg;
-import com.alguojian.videoffmpeg.VideoUtils;
 
-import java.io.File;
-
-import io.microshow.rxffmpeg.RxFFmpegInvoke;
-import io.microshow.rxffmpeg.RxFFmpegSubscriber;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableOnSubscribe;
@@ -35,36 +27,6 @@ public class VfVideoTrimmerUtil {
     private static final int THUMB_WIDTH = (SCREEN_WIDTH_FULL - RECYCLER_VIEW_PADDING * 2) / VIDEO_MAX_TIME;
     private static final int THUMB_HEIGHT = VfUtils.dpToPx(50);
 
-    public static void trim(Context context, String inputFile, String outPath, long startMs, long endMs) {
-        RxFFmpegInvoke.getInstance()
-                .runCommandRxJava(VideoUtils.getCropCommand(inputFile, outPath, startMs, endMs))
-                .subscribe(new RxFFmpegSubscriber() {
-                    @Override
-                    public void onFinish() {
-                        VideoFfmpeg.startInterceptCover(outPath, VfApp.getMContext().getExternalCacheDir().getAbsolutePath()
-                                + File.separator + System.currentTimeMillis() + ".jpg");
-                        LogUtils.log("-------------裁剪完成了");
-                    }
-
-                    @Override
-                    public void onProgress(int progress, long progressTime) {
-                        LogUtils.log("----------------裁剪进度---" + progress + "----" + progressTime);
-                    }
-
-                    @Override
-                    public void onCancel() {
-
-                    }
-
-                    @Override
-                    public void onError(String message) {
-                        LogUtils.log("裁剪失败了---------------" + message);
-
-                    }
-                });
-
-
-    }
 
     @SuppressLint("CheckResult")
     public static Flowable<Bitmap> shootVideoThumbInBackground(final Context context, final Uri videoUri, final int totalThumbsCount, final long startPosition,
