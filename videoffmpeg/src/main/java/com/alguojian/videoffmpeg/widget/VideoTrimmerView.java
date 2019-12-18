@@ -209,10 +209,15 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     }
 
     private void onSaveClicked() {
+
+        if (VideoFfmpeg.isOperating())
+            return;
+
         if (mSourceUri == null) {
             VideoFfmpeg.getVfVideoListener().onError();
             return;
         }
+        VideoFfmpeg.setOperating(true);
         progressBar.setVisibility(VISIBLE);
         mRedProgressBarPos = mVideoView.getCurrentPosition();
         if (mVideoView.isPlaying()) {
