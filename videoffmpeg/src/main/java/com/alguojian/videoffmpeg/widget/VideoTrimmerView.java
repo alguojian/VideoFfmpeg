@@ -16,14 +16,14 @@ import android.view.animation.LinearInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.alguojian.videoffmpeg.LogUtils;
 import com.alguojian.videoffmpeg.R;
-import com.alguojian.videoffmpeg.VfSaveClickListener;
-import com.alguojian.videoffmpeg.VfVideoStatusBean;
 import com.alguojian.videoffmpeg.VideoFfmpeg;
+import com.alguojian.videoffmpeg.VideoUtils;
 import com.alguojian.videoffmpeg.trim.IVideoTrimmerView;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerAdapter;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerUtil;
@@ -40,6 +40,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     private Context mContext;
     private RelativeLayout mLinearVideo;
     private ZVideoView mVideoView;
+    private ProgressBar progressBar;
     private ImageView mPlayView;
     private RecyclerView mVideoThumbRecyclerView;
     private RangeSeekBarView mRangeSeekBarView;
@@ -81,6 +82,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
 
         mLinearVideo = findViewById(R.id.layout_surface_view);
         mVideoView = findViewById(R.id.video_loader);
+        progressBar = findViewById(R.id.progressBar);
         mPlayView = findViewById(R.id.icon_video_play);
         mSeekBarLayout = findViewById(R.id.seekBarLayout);
         mRedProgressIcon = findViewById(R.id.positionIcon);
@@ -206,20 +208,22 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     }
 
     private void onSaveClicked() {
-
-        VfVideoStatusBean.setLeftTime(mLeftProgressPos);
-        VfVideoStatusBean.setRightTime(mRightProgressPos);
-        VfVideoStatusBean.setVideoUri(mSourceUri);
-        mVideoView.pause();
+        if (mSourceUri == null) {
+            VideoFfmpeg.getVfVideoListener().onError();
+            return;
+        }
+        progressBar.setVisibility(VISIBLE);
+        mRedProgressBarPos = mVideoView.getCurrentPosition();
+        if (mVideoView.isPlaying()) {
+            mVideoView.pause();
+            pauseRedProgressAnimation();
+            setPlayPauseViewIcon(mVideoView.isPlaying());
+        }
 
         if (mRightProgressPos - mLeftProgressPos < VfVideoTrimmerUtil.MIN_SHOOT_DURATION) {
-            VfVideoStatusBean.setStatus(VfVideoStatusBean.VIDEO_INTERCEPT_IMAGE);
+            VideoFfmpeg.startInterceptCover(mSourceUri.getPath(), VideoUtils.INSTANCE.getVideoInterceptImageOutPath(), false);
         } else {
-            VfVideoStatusBean.setStatus(VfVideoStatusBean.VIDEO_CROP);
-        }
-        VfSaveClickListener vfSaveClickListener = VideoFfmpeg.INSTANCE.getVfSaveClickListener();
-        if (vfSaveClickListener != null) {
-            vfSaveClickListener.saveClickListener(VideoFfmpeg.INSTANCE.getVfSaveClickStatus());
+            VideoFfmpeg.startCrop(mSourceUri.getPath(), VideoUtils.INSTANCE.getVideoCropOutPath(), mLeftProgressPos, mRightProgressPos, false);
         }
     }
 
@@ -233,6 +237,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     @Override
     public void onPause() {
         isFromRestore = true;
+        progressBar.setVisibility(GONE);
     }
 
     @Override

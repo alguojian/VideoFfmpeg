@@ -149,7 +149,7 @@ object VideoFfmpeg {
             isOperating = true
             vfVideoListener?.onStart()
         } else {
-            vfVideoListener!!.onProgress(20)
+//            vfVideoListener!!.onProgress(20)
         }
         RxFFmpegInvoke.getInstance()
             .runCommandRxJava(VideoUtils.getInterceptImage(inPath, outPath))
@@ -159,9 +159,12 @@ object VideoFfmpeg {
                     if (aloneTransfer) {
                         vfVideoListener?.onFinish(null, outPath)
                     } else {
-                        vfVideoListener?.onProgress(25)
+                        VfVideoStatusBean.videoPath = inPath
+                        VfVideoStatusBean.thumbImagePath = outPath
+                        vfSaveClickListener?.saveClickListener(vfSaveClickStatus)
+//                        vfVideoListener?.onProgress(25)
                         //获取第一帧完成，开始压缩
-                        startCompress(inPath, VideoUtils.videoCompressOutPath, outPath, false)
+//                        startCompress(inPath, VideoUtils.videoCompressOutPath, outPath, false)
                     }
                     changeStatus(aloneTransfer)
                 }
@@ -177,7 +180,7 @@ object VideoFfmpeg {
                     if (aloneTransfer) {
                         vfVideoListener?.onProgress(progress)
                     } else {
-                        vfVideoListener?.onProgress(20 + progress * 5 / 100)
+//                        vfVideoListener?.onProgress(20 + progress * 5 / 100)
                     }
                 }
 
@@ -210,8 +213,8 @@ object VideoFfmpeg {
     ) {
         if (aloneTransfer) {
             isOperating = true
+            vfVideoListener?.onStart()
         }
-        vfVideoListener?.onStart()
         RxFFmpegInvoke.getInstance()
             .runCommandRxJava(VideoUtils.getCropCommand(inPath, outPath, startMs, endMs))
             .subscribe(object : RxFFmpegSubscriber() {
@@ -221,7 +224,7 @@ object VideoFfmpeg {
                         vfVideoListener?.onFinish(outPath, null)
                     } else {
                         //裁剪完成，开始获取第一帧
-                        vfVideoListener?.onProgress(20)
+//                        vfVideoListener?.onProgress(20)
                         startInterceptCover(outPath, VideoUtils.videoInterceptImageOutPath, false)
                     }
                     changeStatus(aloneTransfer)
@@ -238,7 +241,7 @@ object VideoFfmpeg {
                     if (aloneTransfer) {
                         vfVideoListener?.onProgress(progress)
                     } else {
-                        vfVideoListener?.onProgress(progress * 20 / 100)
+//                        vfVideoListener?.onProgress(progress * 20 / 100)
                     }
                 }
 
