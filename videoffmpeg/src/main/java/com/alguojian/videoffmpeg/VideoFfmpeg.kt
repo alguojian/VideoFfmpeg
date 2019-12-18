@@ -62,11 +62,12 @@ object VideoFfmpeg {
     /**
      * 设置完成点击时的回调，带有状态，区分多个业务逻辑
      */
+    @JvmOverloads
     @JvmStatic
     fun setSaveClickListener(
         status: Int,
         vfSaveClickListener: VfSaveClickListener,
-        vfFinishAllActivity: Boolean
+        vfFinishAllActivity: Boolean = false
     ) {
         this@VideoFfmpeg.vfSaveClickListener = vfSaveClickListener
         this@VideoFfmpeg.vfSaveClickStatus = status
