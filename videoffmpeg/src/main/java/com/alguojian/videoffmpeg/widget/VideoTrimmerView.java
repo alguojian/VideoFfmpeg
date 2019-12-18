@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.alguojian.videoffmpeg.LogUtils;
 import com.alguojian.videoffmpeg.R;
+import com.alguojian.videoffmpeg.VfMessageNotification;
 import com.alguojian.videoffmpeg.VideoFfmpeg;
 import com.alguojian.videoffmpeg.VideoUtils;
 import com.alguojian.videoffmpeg.trim.IVideoTrimmerView;
@@ -225,6 +226,8 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
         } else {
             VideoFfmpeg.startCrop(mSourceUri.getPath(), VideoUtils.INSTANCE.getVideoCropOutPath(), mLeftProgressPos, mRightProgressPos, false);
         }
+        if (VideoFfmpeg.INSTANCE.getVfFinishAllActivity())
+            VfMessageNotification.INSTANCE().send(VideoUtils.start_video_operating_finish_activity);
     }
 
     private void seekTo(long msec) {

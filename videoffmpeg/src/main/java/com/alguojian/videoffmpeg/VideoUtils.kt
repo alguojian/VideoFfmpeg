@@ -6,6 +6,9 @@ import android.media.MediaMetadataRetriever
  * context.externalCacheDir!!.absolutePath + File.separator + System.currentTimeMillis() + ".mp4"
  */
 object VideoUtils {
+    //点击完成开始视频操作时，关闭截取页面，以及视频选择页面
+    const val start_video_operating_finish_activity = "START_VIDEO_OPERATING_FINISH_ACTIVITY"
+
 
     val videoCropOutPath: String
         get() {

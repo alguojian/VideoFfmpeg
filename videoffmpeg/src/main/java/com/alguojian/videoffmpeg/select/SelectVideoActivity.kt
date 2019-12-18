@@ -6,7 +6,10 @@ import android.database.Cursor
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import com.alguojian.videoffmpeg.R
+import com.alguojian.videoffmpeg.VfMessageNotification
 import com.alguojian.videoffmpeg.VfSimpleCallback
+import com.alguojian.videoffmpeg.VideoUtils
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.vf_activity_select_video.*
 import kotlinx.android.synthetic.main.vf_common_action_bar.*
 
@@ -14,6 +17,7 @@ class SelectVideoActivity : AppCompatActivity() {
 
     private var mVideoSelectAdapter: SelectVideoAdapter? = null
     private lateinit var mVideoLoadManager: VfVideoLoadManager
+    private var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +26,10 @@ class SelectVideoActivity : AppCompatActivity() {
         tvTitle.text = "选择视频"
         back.setOnClickListener { finish() }
 
+
+        disposable = VfMessageNotification.INSTANCE().toFlowable()
+            .filter { it === VideoUtils.start_video_operating_finish_activity }
+            .subscribe { finish() }
 
         mVideoLoadManager = VfVideoLoadManager()
         mVideoLoadManager.setLoader(VfVideoCursorLoader())
@@ -41,6 +49,13 @@ class SelectVideoActivity : AppCompatActivity() {
                 mVideoSelectAdapter!!.notifyDataSetChanged()
             }
         })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (disposable != null && !disposable!!.isDisposed) {
+            disposable?.dispose()
+        }
     }
 
     companion object {

@@ -28,6 +28,7 @@ object VideoFfmpeg {
      */
     var vfSaveClickListener: VfSaveClickListener? = null
     var vfSaveClickStatus = 0
+    var vfFinishAllActivity = false
 
     /**
      * 是否正在进行视频的操作，包括裁剪，压缩上传等一系列，防止当前没操作完，禁止操作下一个视频
@@ -62,9 +63,14 @@ object VideoFfmpeg {
      * 设置完成点击时的回调，带有状态，区分多个业务逻辑
      */
     @JvmStatic
-    fun setSaveClickListener(status: Int, vfSaveClickListener: VfSaveClickListener) {
+    fun setSaveClickListener(
+        status: Int,
+        vfSaveClickListener: VfSaveClickListener,
+        vfFinishAllActivity: Boolean
+    ) {
         this@VideoFfmpeg.vfSaveClickListener = vfSaveClickListener
         this@VideoFfmpeg.vfSaveClickStatus = status
+        this@VideoFfmpeg.vfFinishAllActivity = vfFinishAllActivity
     }
 
 
