@@ -15,7 +15,7 @@ import io.microshow.rxffmpeg.RxFFmpegSubscriber
 object VideoFfmpeg {
 
     @JvmStatic
-    private lateinit var mContext: Context
+    lateinit var mContext: Context
 
     /**
      * 视频相关进度

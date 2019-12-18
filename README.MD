@@ -17,7 +17,7 @@
 - Step 2. Add the dependency
 ```
         dependencies {
-                        implementation 'com.github.alguojian:VideoFfmpeg:v1.0.1'
+                        implementation 'com.github.alguojian:VideoFfmpeg:v1.1.3'
         }
 ```
 
@@ -45,7 +45,18 @@
             override fun onStart() {
             }
         })
-        
+
+ //点击完成时的回调，视频已经裁剪和获取封面图成功路径如下
+ 
+ VfVideoStatusBean.getThumbImagePath()
+ VfVideoStatusBean.getVideoPath()
+ 
+ 
+ VideoFfmpeg.setSaveClickListener(1, status -> {
+            if (status==1){
+                
+            }
+        });
   
  //视频操作完成需要调用，之后才可以操作下一个视频
  VideoFfmpeg.changeStatus()

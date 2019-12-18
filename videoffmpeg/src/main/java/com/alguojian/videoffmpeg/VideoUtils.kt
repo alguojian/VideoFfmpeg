@@ -12,17 +12,17 @@ object VideoUtils {
 
     val videoCropOutPath: String
         get() {
-            return VfApp.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
+            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
         }
 
     val videoInterceptImageOutPath: String
         get() {
-            return VfApp.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".jpg"
+            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".jpg"
         }
 
     val videoCompressOutPath: String
         get() {
-            return VfApp.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
+            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
         }
 
 

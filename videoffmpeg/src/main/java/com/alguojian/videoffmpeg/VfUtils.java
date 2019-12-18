@@ -12,7 +12,7 @@ public class VfUtils {
     }
 
     public static DisplayMetrics getDisplayMetrics() {
-        return VfApp.getMContext().getResources().getDisplayMetrics();
+        return VideoFfmpeg.mContext.getResources().getDisplayMetrics();
     }
 
 

@@ -5,8 +5,10 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-    <application android:name=".VfApp">
-        <activity android:name=".trim.VideoTrimmerActivity"></activity>
+    <application>
+        <activity
+            android:name=".trim.VideoTrimmerActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".select.SelectVideoActivity"
             android:screenOrientation="portrait" />
