@@ -19,12 +19,11 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-
 import com.alguojian.videoffmpeg.LogUtils;
 import com.alguojian.videoffmpeg.R;
-import com.alguojian.videoffmpeg.VfMessageTotification;
+import com.alguojian.videoffmpeg.VfSaveClickListener;
+import com.alguojian.videoffmpeg.VfVideoStatusBean;
 import com.alguojian.videoffmpeg.VideoFfmpeg;
-import com.alguojian.videoffmpeg.VideoUtils;
 import com.alguojian.videoffmpeg.trim.IVideoTrimmerView;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerAdapter;
 import com.alguojian.videoffmpeg.trim.VfVideoTrimmerUtil;
@@ -196,7 +195,6 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
 
     private void setUpListeners() {
         findViewById(R.id.cancelBtn).setOnClickListener(view -> onCancelClicked());
-
         findViewById(R.id.finishBtn).setOnClickListener(view -> onSaveClicked());
         mVideoView.setOnPreparedListener(mp -> {
             if (isFromRestore) return;
@@ -208,17 +206,21 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     }
 
     private void onSaveClicked() {
-        VideoFfmpeg.setOperating(true);
+
+        VfVideoStatusBean.setLeftTime(mLeftProgressPos);
+        VfVideoStatusBean.setRightTime(mRightProgressPos);
+        VfVideoStatusBean.setVideoUri(mSourceUri);
+        mVideoView.pause();
+
         if (mRightProgressPos - mLeftProgressPos < VfVideoTrimmerUtil.MIN_SHOOT_DURATION) {
-            VideoFfmpeg.getVfVideoListener().onProgress(20);
-            String outpath = VideoUtils.INSTANCE.getVideoInterceptImageOutPath();
-            VideoFfmpeg.startInterceptCover(mSourceUri.getPath(), outpath, false);
+            VfVideoStatusBean.setStatus(VfVideoStatusBean.VIDEO_INTERCEPT_IMAGE);
         } else {
-            mVideoView.pause();
-            String outpath = VideoUtils.INSTANCE.getVideoCropOutPath();
-            VideoFfmpeg.startCrop(mSourceUri.getPath(), outpath, mLeftProgressPos, mRightProgressPos, false);
+            VfVideoStatusBean.setStatus(VfVideoStatusBean.VIDEO_CROP);
         }
-        VfMessageTotification.INSTANCE().send(VideoUtils.start_video_operating_finish_activity);
+        VfSaveClickListener vfSaveClickListener = VideoFfmpeg.INSTANCE.getVfSaveClickListener();
+        if (vfSaveClickListener != null) {
+            vfSaveClickListener.saveClickListener(VideoFfmpeg.INSTANCE.getVfSaveClickStatus());
+        }
     }
 
     private void seekTo(long msec) {

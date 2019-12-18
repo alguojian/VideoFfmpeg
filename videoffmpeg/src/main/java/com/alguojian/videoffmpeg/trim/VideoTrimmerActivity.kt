@@ -8,16 +8,11 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
 import com.alguojian.videoffmpeg.R
-import com.alguojian.videoffmpeg.VfMessageTotification
-import com.alguojian.videoffmpeg.VideoUtils.start_video_operating_finish_activity
-import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.vf_activity_video_trimmer.*
 
 class VideoTrimmerActivity : AppCompatActivity() {
 
     private lateinit var videoPath: String
-
-    private var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +25,6 @@ class VideoTrimmerActivity : AppCompatActivity() {
         setContentView(R.layout.vf_activity_video_trimmer)
         videoPath = intent.getStringExtra("videoPath")
         trimmer_view.initVideoByURI(Uri.parse(videoPath))
-
-        disposable = VfMessageTotification.INSTANCE().toFlowable()
-            .filter { it === start_video_operating_finish_activity }
-            .subscribe { finish() }
-
     }
 
     companion object {
@@ -60,8 +50,5 @@ class VideoTrimmerActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         trimmer_view.onDestroy()
-        if (disposable != null && !disposable!!.isDisposed) {
-            disposable?.dispose()
-        }
     }
 }

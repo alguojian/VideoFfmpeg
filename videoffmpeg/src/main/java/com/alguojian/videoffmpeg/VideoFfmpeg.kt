@@ -24,6 +24,12 @@ object VideoFfmpeg {
     var vfVideoListener: VfVideoListener? = null
 
     /**
+     * 点击保存时的回调
+     */
+    var vfSaveClickListener: VfSaveClickListener? = null
+    var vfSaveClickStatus = 0
+
+    /**
      * 是否正在进行视频的操作，包括裁剪，压缩上传等一系列，防止当前没操作完，禁止操作下一个视频
      */
     @JvmStatic
@@ -52,6 +58,15 @@ object VideoFfmpeg {
         this@VideoFfmpeg.vfVideoListener = vfVideoListener
     }
 
+    /**
+     * 设置完成点击时的回调，带有状态，区分多个业务逻辑
+     */
+    @JvmStatic
+    fun setSaveClickListener(status: Int, vfSaveClickListener: VfSaveClickListener) {
+        this@VideoFfmpeg.vfSaveClickListener = vfSaveClickListener
+        this@VideoFfmpeg.vfSaveClickStatus = status
+    }
+
 
     /**
      * 压缩视频
@@ -66,8 +81,10 @@ object VideoFfmpeg {
     ) {
         if (aloneTransfer) {
             isOperating = true
+            vfVideoListener?.onStart()
+        } else {
+            vfVideoListener?.onProgress(25)
         }
-        vfVideoListener?.onStart()
         val compressCommand = VideoUtils.getCompressCommand(inPath, outPath)
         if (compressCommand.isNullOrEmpty()) {
             LogUtils.log("--------------压缩完成了--------------低于400码率不需要压缩------------------------$outPath")
@@ -130,8 +147,10 @@ object VideoFfmpeg {
     ) {
         if (aloneTransfer) {
             isOperating = true
+            vfVideoListener?.onStart()
+        } else {
+            vfVideoListener!!.onProgress(20)
         }
-        vfVideoListener?.onStart()
         RxFFmpegInvoke.getInstance()
             .runCommandRxJava(VideoUtils.getInterceptImage(inPath, outPath))
             .subscribe(object : RxFFmpegSubscriber() {

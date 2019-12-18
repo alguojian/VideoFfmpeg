@@ -16,7 +16,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class VfVideoTrimmerUtil {
 
-    public static final long MIN_SHOOT_DURATION = 3000L;// 最小剪辑时间3s
+    public static final long MIN_SHOOT_DURATION = 5000L;// 最小剪辑时间3s
     public static final int VIDEO_MAX_TIME = 15;// 15秒
     public static final long MAX_SHOOT_DURATION = VIDEO_MAX_TIME * 1000L;//视频最多剪切多长时间10s
 
