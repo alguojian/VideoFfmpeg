@@ -98,4 +98,9 @@ VideoFfmpeg.startCrop("",VideoUtils.videoCropOutPath,1000L,2000L)
 
 ```
 
+- 参考
+
+- https://blog.csdn.net/mabeijianxi/article/details/63335722
+- https://blog.csdn.net/leixiaohua1020/article/details/18893769
+
 

@@ -12,17 +12,18 @@ object VideoUtils {
 
     val videoCropOutPath: String
         get() {
-            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
+            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.nanoTime() + ".mp4"
         }
 
-    val videoInterceptImageOutPath: String
-        get() {
-            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".jpg"
+    var videoInterceptImageOutPath: String = ""
+        set(value) {
+            field =
+                VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.nanoTime() + value + ".jpg"
         }
 
     val videoCompressOutPath: String
         get() {
-            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.currentTimeMillis() + ".mp4"
+            return VideoFfmpeg.mContext.externalCacheDir.absolutePath + java.io.File.separator + System.nanoTime() + ".mp4"
         }
 
 
@@ -76,8 +77,29 @@ object VideoUtils {
      */
     @JvmStatic
     fun getInterceptImage(
-        originPath: String, outPath: String
+        originPath: String
     ): Array<String> {
+
+        val mMetadataRetriever = MediaMetadataRetriever()
+        mMetadataRetriever.setDataSource(originPath)
+        val videoRotation =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+        val videoHeight =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+        val videoWidth =
+            mMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+
+        val width: Int
+        val height: Int
+        if (Integer.parseInt(videoRotation) == 90 || Integer.parseInt(videoRotation) == 270) {
+            width = videoHeight.toInt()
+            height = videoWidth.toInt()
+        } else {
+            //角度不对需要宽高调换
+            width = videoWidth.toInt()
+            height = videoHeight.toInt()
+        }
+
         val list = mutableListOf<String>()
         list.add("ffmpeg")
         list.add("-y")
@@ -86,12 +108,13 @@ object VideoUtils {
         list.add("-f")
         list.add("image2")
         list.add("-ss")
-        list.add("00:00:01")
+        list.add("00:00:00")
         list.add("-vframes")
         list.add("1")
         list.add("-preset")
         list.add("superfast")
-        list.add(outPath)
+        videoInterceptImageOutPath = "_" + width + "_" + height
+        list.add(videoInterceptImageOutPath)
         return list.toTypedArray()
     }
 

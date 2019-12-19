@@ -149,7 +149,7 @@ object VideoFfmpeg {
     @JvmOverloads
     fun startInterceptCover(
         inPath: String,
-        outPath: String = VideoUtils.videoInterceptImageOutPath,
+//            outPath: String = VideoUtils.videoInterceptImageOutPath,
         aloneTransfer: Boolean = true
     ) {
         if (aloneTransfer) {
@@ -158,8 +158,10 @@ object VideoFfmpeg {
         } else {
 //            vfVideoListener!!.onProgress(20)
         }
+        val interceptImage = VideoUtils.getInterceptImage(inPath)
+        val outPath = interceptImage.last()
         RxFFmpegInvoke.getInstance()
-            .runCommandRxJava(VideoUtils.getInterceptImage(inPath, outPath))
+            .runCommandRxJava(interceptImage)
             .subscribe(object : RxFFmpegSubscriber() {
                 override fun onFinish() {
                     LogUtils.log("--------------截取完成了----------------------------$outPath")
@@ -232,7 +234,7 @@ object VideoFfmpeg {
                     } else {
                         //裁剪完成，开始获取第一帧
 //                        vfVideoListener?.onProgress(20)
-                        startInterceptCover(outPath, VideoUtils.videoInterceptImageOutPath, false)
+                        startInterceptCover(outPath, false)
                     }
                     changeStatus(aloneTransfer)
                 }

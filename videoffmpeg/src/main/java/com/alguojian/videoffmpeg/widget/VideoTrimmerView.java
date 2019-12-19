@@ -67,6 +67,9 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     private Handler mAnimationHandler = new Handler();
     private Disposable disposable;
 
+    public VideoTrimmerView(Context context) {
+        this(context, null);
+    }
 
     public VideoTrimmerView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -227,7 +230,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
         }
 
         if (mRightProgressPos - mLeftProgressPos < VfVideoTrimmerUtil.MIN_SHOOT_DURATION) {
-            VideoFfmpeg.startInterceptCover(mSourceUri.getPath(), VideoUtils.INSTANCE.getVideoInterceptImageOutPath(), false);
+            VideoFfmpeg.startInterceptCover(mSourceUri.getPath(), false);
         } else {
             VideoFfmpeg.startCrop(mSourceUri.getPath(), VideoUtils.INSTANCE.getVideoCropOutPath(), mLeftProgressPos, mRightProgressPos, false);
         }
@@ -246,6 +249,7 @@ public class VideoTrimmerView extends FrameLayout implements IVideoTrimmerView {
     public void onPause() {
         isFromRestore = true;
         progressBar.setVisibility(GONE);
+        VideoFfmpeg.changeStatus();
     }
 
     @Override
